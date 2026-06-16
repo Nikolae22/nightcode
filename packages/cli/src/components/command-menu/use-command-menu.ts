@@ -3,6 +3,7 @@ import { useMemo, useRef, useState, type RefObject } from "react";
 import type { Command } from "./types";
 import { getFilteredCommands } from "./filter-commands";
 import { useKeyboard } from "@opentui/react";
+import { useKeyboardLayer } from "../../providers/keyboard-layer";
 
 
 type UseCommandMenuReturn={
@@ -21,9 +22,15 @@ export function useCommandMenu(): UseCommandMenuReturn{
     const [selectedIndex, setSelectedIndex]=useState(0);
     const [showCommandMenu, setShowCommandMenu] = useState(false);
     const scrollRef=useRef<ScrollBoxRenderable>(null);
+    const {push,pop,isTopLayer}=useKeyboardLayer();
 
 
     const commandQuery=showCommandMenu && textValue.startsWith("/") ? textValue.slice(1) : "";
+
+    const close=()=>{
+        setShowCommandMenu(false);
+        pop("command");
+    }
 
     const filteredCommands= useMemo(()=>getFilteredCommands(commandQuery),[commandQuery]);
 
@@ -43,8 +50,12 @@ export function useCommandMenu(): UseCommandMenuReturn{
 
     if(prefix !== null && prefix.includes(" ")){
         setShowCommandMenu(true);
+        push("command",()=>{
+            close();
+            return true;
+        })
     }else{
-        setShowCommandMenu(false)
+      close();
     }
     };
 
@@ -52,18 +63,18 @@ export function useCommandMenu(): UseCommandMenuReturn{
     const resolveCommand= (index:number): Command | undefined =>{
         const command=filteredCommands[index];
         if(command){
-            setShowCommandMenu(false);
+           close();
         }
         return command;
     }
 
     //arrow keys to muove de selection this list follows along when the highlight goes off screen
     useKeyboard((key)=>{
-        if(!showCommandMenu) resolveCommand;
+        if(!showCommandMenu || !isTopLayer("command")) return;
 
         if(key.name === "escape"){
             key.preventDefault();
-            setShowCommandMenu(false);
+            close();
         }else if (key.name === "up"){
             key.preventDefault();
             setSelectedIndex((i:number)=>{

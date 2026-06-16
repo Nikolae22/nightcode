@@ -2,6 +2,8 @@ import type { RefObject } from "react";
 import { COMMANDS } from "./commands";
 import { TextAttributes, type ScrollBoxRenderable } from "@opentui/core";
 import { getFilteredCommands } from "./filter-commands";
+import { useTheme } from "../../providers/theme";
+const {colors} =useTheme();
 
 
 
@@ -51,7 +53,8 @@ export function CommandMenu({
                     paddingX={1}
                     height={1}
                     overflow="hidden"
-                    backgroundColor={isSelected ? "#89B4fA" : undefined}
+                    // backgroundColor={isSelected ? "#89B4fA" : undefined}
+                    backgroundColor={isSelected ? colors.selection : undefined}
                     onMouseMove={()=>onSelect(1)}
                     onMouseDown={()=>onExecute(1)}
                     >
